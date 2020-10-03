@@ -127,3 +127,13 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# exclude .vscode project folder
+.vscode
+
+# exclude .env files
+.env
+
+# exclude users lists files
+crawler/users-lists/*
+!crawler/users-lists/README
