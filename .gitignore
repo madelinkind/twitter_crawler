@@ -137,3 +137,6 @@ dmypy.json
 # exclude users lists files
 crawler/users-lists/*
 !crawler/users-lists/README
+
+# exclude databases
+db.sqlite3
