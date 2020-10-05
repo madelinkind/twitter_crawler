@@ -11,12 +11,12 @@ import django
 django.setup()
 
 # Import your models for use in your script
-from db.models import User
+from db.models import TwitterUser
 
 def list_users():
     # Start of application script (demo code below)
-    for u in User.objects.all():
-        print(f"id: {u.id}\tUsername: {u.name}")
+    for u in TwitterUser.objects.all():
+        print(f"id: {u.id}\tScreenname: {u.screen_name}")
 
 if __name__ == '__main__':
     list_users()

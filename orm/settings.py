@@ -5,10 +5,12 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 DATABASES = {
     'default': {
-        # Database driver
-        'ENGINE': 'django.db.backends.sqlite3',
-        # Replace below with Database Name if using other database engines
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'twitter_db',
+        'USER': 'root',
+        'PASSWORD':'root',
+        'HOST':'raspberry.home',
+        'PORT':'5432',
     }
 }
 

@@ -1,2 +1,5 @@
 # check for typing issues with mypy from command line
 mypy --ignore-missing-imports crawler/engine.py
+
+# migrate for db app
+python orm/manage.py makemigrations db

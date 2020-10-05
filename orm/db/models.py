@@ -1,19 +1,28 @@
 import sys
+import datetime
+
 try:
     from django.db import models
 except Exception:
     print("Exception: Django Not Found, please install it with \"pip install django\".")
     sys.exit()
 
+# Create your models here.
 
-# Sample User model
-class User(models.Model):
-    name = models.CharField(max_length=50, default="")
+class TwitterUser(models.Model):
+    screen_name = models.CharField(max_length=15)
+    twitter_user_id = models.IntegerField(null=True)
+    user_info = models.JSONField()
 
     class Meta:
-        db_table = "user"
+        db_table = "twitter_users"
 
-    def __str__(self):
-        return self.name
+class Tweet(models.Model):
+    twitter_users = models.ForeignKey(TwitterUser, on_delete=models.CASCADE)
+    tweet_text = models.CharField(max_length=280)
+    tweet_date = models.DateTimeField()
+    tweet_id = models.IntegerField()
+    tweet_info = models.JSONField()
 
-    __repr__ = __str__
+    class Meta:
+        db_table = "tweets"
