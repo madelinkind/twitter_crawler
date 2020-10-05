@@ -5,6 +5,21 @@ from collections import Counter
 
 from tweepy import OAuthHandler, API, Cursor
 
+import os
+import sys
+
+# Django specific settings
+sys.path.append('./orm')
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings")
+
+# import and setup django
+import django
+django.setup()
+
+# Import your models for use in your script
+from db.models import Tweet
+
+
 
 class TwitterEngine(object):
     """
@@ -84,6 +99,16 @@ class TwitterEngine(object):
         
         # get all tweets metadata from specific user
         for tweet_info in Cursor(self.TwitterApi.user_timeline, id=user_id).items():
+            t = Tweet()
+            t.tweet_text = tweet_info.text
+            t.tweet_date = tweet_info.created_at
+            t.tweet_id = 10 # tweet_info.id
+            t.tweet_info = '[]'
+            t.twitter_users_id = 2
+            t.save()
+
+            continue
+
             tweet_count += 1
             user_tweets.append(tweet_info)
 
