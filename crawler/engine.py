@@ -8,18 +8,6 @@ from tweepy import OAuthHandler, API, Cursor
 import os
 import sys
 
-# Django specific settings
-sys.path.append('./orm')
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings")
-
-# import and setup django
-import django
-django.setup()
-
-# Import your models for use in your script
-from db.models import Tweet
-
-
 
 class TwitterEngine(object):
     """
@@ -46,6 +34,7 @@ class TwitterEngine(object):
         consumer_key = kwargs['consumer_key']
         consumer_key_secret = kwargs['consumer_key_secret']
         usernames = kwargs['usernames']
+        storage = kwargs['storage']
 
         # users list must be valid
         if not usernames or not isinstance(usernames, list):
@@ -57,6 +46,7 @@ class TwitterEngine(object):
         self.consumer_key = consumer_key
         self.consumer_key_secret = consumer_key_secret
         self.usernames = usernames
+        self.storage = storage
         self.TwitterApi = None
 
         # initialize api to communicate with Twitter
@@ -86,7 +76,7 @@ class TwitterEngine(object):
         if not username:
             logging.warning(f"Invalid username: ${username}!")
             return False, {}
-
+        
         print(f"Downloading tweets for username: '${username}'")
 
         # get user tweets
@@ -96,16 +86,23 @@ class TwitterEngine(object):
         user_tweets = []
         tweet_count = 0
         # end_date = datetime.utcnow() - timedelta(days=30)
-        
+
         # get all tweets metadata from specific user
         for tweet_info in Cursor(self.TwitterApi.user_timeline, id=user_id).items():
-            t = Tweet()
-            t.tweet_text = tweet_info.text
-            t.tweet_date = tweet_info.created_at
-            t.tweet_id = 10 # tweet_info.id
-            t.tweet_info = '[]'
-            t.twitter_users_id = 2
-            t.save()
+            # t = Tweet()
+            # t.tweet_lang = tweet_info.lang
+            # t.is_retweet = tweet_info.retweeted
+            # t.tweet_text = tweet_info.text
+            # t.tweet_date = tweet_info.created_at
+            # t.tweet_id = 10 # tweet_info.id
+            # t.tweet_info = '[]'
+            # t.twitter_users_id = 2
+            # t.save()
+
+            # saving tweet depending on the provided storage
+            success = self.storage.save_tweet(tweet_info)
+            if not success:
+                print("Failed to save Tweet")
 
             continue
 
