@@ -9,7 +9,7 @@ DATABASES = {
         'NAME': 'twitter_db',
         'USER': 'root',
         'PASSWORD':'root',
-        'HOST':'raspberry.home',
+        'HOST':'raspberrypi.home',
         'PORT':'5432',
     }
 }

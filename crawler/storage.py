@@ -38,7 +38,11 @@ class DBStorage(IStorage):
         t.tweet_id = tweet.id
 
         t.tweet_info = tweet._json
-
+        
+        if hasattr(tweet, 'retweeted_status'):
+            t.is_retweet = True
+        else:
+            t.is_retweet = False
         try:
             user = TwitterUser.objects.get(screen_name=tweet.user.screen_name)
             t.twitter_user = user
