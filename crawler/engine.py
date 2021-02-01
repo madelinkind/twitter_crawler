@@ -93,7 +93,7 @@ class TwitterEngine(object):
             return True
         return False
 
-    def get_user_tweets(self, username: str) -> Tuple[bool, Dict[str, object]]:
+    def get_user_tweets(self, username: str) -> bool:
 
         # maximum allowed amount of tweets to download the API
         TIMELINE_MAX = 3200
@@ -101,18 +101,10 @@ class TwitterEngine(object):
         # check username
         if not username:
             logging.warning(f"Invalid username: {username}!")
-            return False, {}
+            return False
         
         print(f"Downloading tweets for username: '{username}'")
 
-        # get user tweets
-        user_id = self.get_user_id_from_username(username)
-        all_hashtags = []
-        all_mentions = []
-        user_tweets = []
-        tweet_count = 0
-        # end_date = datetime.utcnow() - timedelta(days=30)
-        # get all tweets metadata from specific user
         time.sleep(5)
 
         user_name = TwitterUser.objects.get(screen_name=username)
@@ -121,7 +113,7 @@ class TwitterEngine(object):
         if Tweet.objects.filter(twitter_user=user_name.id).order_by('-tweet_date').exists():
             tweet_date_db_recent = Tweet.objects.filter(twitter_user=user_name.id).order_by('-tweet_date')[0].tweet_date
             
-        user_timeline = Cursor(self.TwitterApi.user_timeline, id=user_id).items()
+        user_timeline = Cursor(self.TwitterApi.user_timeline, id=username).items()
         for tweet_info in user_timeline:
             tweet_date_api_recent = tweet_info.created_at
             # 
@@ -141,81 +133,4 @@ class TwitterEngine(object):
 
             continue
 
-            tweet_count += 1
-            user_tweets.append(tweet_info)
-
-            # if tweet metadata doesn't have entities, continue
-            if not hasattr(tweet_info, "entities"):
-                continue
-
-            entities = tweet_info.entities
-
-            # get current tweet hashtags
-            tweet_hashtags = self.get_tweet_hashtags(entities)
-            all_hashtags += tweet_hashtags
-
-            # get current tweet mentions
-            tweet_mentions = self.get_tweet_mentions(entities)
-            all_mentions += tweet_mentions
-
-            # # restricting to accounts created after specific date (i.e., in the last month)
-            # if status.created_at < end_date:
-            #     break
-
-        # get 10 most common mentions in tweet
-        common_mentions = [(item, count) for item, count in Counter(all_mentions).most_common(10)]
-
-        # get 10 most used hastags
-        common_hashtags = [(item, count) for item, count in Counter(all_hashtags).most_common(10)]
-
-        user_tweets_info = {
-            'tweets_count': tweet_count,
-            'tweets': user_tweets,
-
-            'common_mentions': common_mentions,
-            'all_mentions': all_mentions,
-
-            'common_hashtags': common_hashtags,
-            'all_hashtags': all_hashtags,
-        }
-
-        return True, user_tweets_info
-
-    def get_user_id_from_username(self, username: str) -> str:
-        # https://stackoverflow.com/questions/29223454/user-id-to-username-tweepy
-        # https://www.geeksforgeeks.org/python-api-get_user-in-tweepy/
-
-        # user = self.TwitterApi.get_user(screen_name=username)
-        # return user.id
-        return username
-
-    def get_tweet_hashtags(self, tweet_entities) -> list:
-        if "hashtags" not in tweet_entities:
-            return []
-
-        hashtags = []
-        for ent in tweet_entities["hashtags"]:
-            # entity must be valid and 'text' provided
-            if ent is None or "text" not in ent:
-                continue
-
-            hashtag = ent["text"]
-            if hashtag:
-                hashtags.append(hashtag)
-
-        return hashtags
-    
-    def get_tweet_mentions(self, tweet_entities) -> list:
-        if "user_mentions" not in tweet_entities:
-            return []
-
-        mentions = []
-        for ent in tweet_entities["user_mentions"]:
-            if ent is None or "screen_name" not in ent:
-                continue
-
-            name = ent["screen_name"]
-            if name:
-                mentions.append(name)
-
-        return mentions
+        return True
