@@ -1,6 +1,6 @@
 import logging
 from typing import Tuple, Dict
-from datetime import datetime, date, time, timedelta
+from datetime import datetime, date, timedelta
 from collections import Counter
 import time
 from tweepy import OAuthHandler, API, Cursor
@@ -20,6 +20,9 @@ django.setup()
 
 # Import your models for use in your script
 from db.models import Tweet, TwitterUser
+
+TIMELINE_MAX = 3200
+
 
 class TwitterEngine(object):
     """
@@ -96,8 +99,8 @@ class TwitterEngine(object):
     def get_user_tweets(self, username: str) -> bool:
 
         # maximum allowed amount of tweets to download the API
-        TIMELINE_MAX = 3200
         success = False
+
         # check username
         if not username:
             logging.warning(f"Invalid username: {username}!")
@@ -107,23 +110,29 @@ class TwitterEngine(object):
 
         time.sleep(5)
 
-        user_name = TwitterUser.objects.get(screen_name=username)
-        tweet_date_db_recent = None
-        #
-        if Tweet.objects.filter(twitter_user=user_name.id).order_by('-tweet_date').exists():
-            tweet_date_db_recent = Tweet.objects.filter(twitter_user=user_name.id).order_by('-tweet_date')[0].tweet_date
-            
+        user = TwitterUser.objects.get(screen_name=username)
+        # tweet_date_db_recent = None
+        # #
+
+        # # MyModel.objects.filter(blah=blah).first()
+        # if Tweet.objects.filter(twitter_user=user.id).order_by('-tweet_date').exists():
+        #     tweet_date_db_recent = Tweet.objects.filter(twitter_user=user.id).order_by('-tweet_date')[0].tweet_date
+
+        lastest_tweet = Tweet.objects.filter(twitter_user=user.id).order_by('-tweet_date').first()
+
+
+        # build dictionary of user tweets
+        user_tweets_dict = self.build_user_tweets_dict(user)
+
         user_timeline = Cursor(self.TwitterApi.user_timeline, id=username).items()
         for tweet_info in user_timeline:
             tweet_date_api_recent = tweet_info.created_at
             # 
-            if tweet_date_db_recent is not None and self.user_saved_tweets_count(user_name) > TIMELINE_MAX and self.current_tweet_db_is_older(tweet_date_db_recent, tweet_date_api_recent):
-                    break
-            
-            # tween already saved
-            if Tweet.objects.filter(tweet_id=tweet_info.id).exists():
+            if lastest_tweet is not None and self.user_saved_tweets_count(user) > TIMELINE_MAX and self.current_tweet_db_is_older(lastest_tweet, tweet_date_api_recent):
+                break
+            if tweet_info.id in user_tweets_dict:
                 continue
-
+            
             # need to add tweet to db
             print(f"{datetime.now()}: Saving tweet with id={tweet_info.id}")
             success = self.storage.save_tweet(tweet_info)
@@ -131,6 +140,12 @@ class TwitterEngine(object):
             if not success:
                 print("The tweet already exists in data base")
 
-            continue
-
         return True
+
+    def build_user_tweets_dict(self, user: TwitterUser):
+        d = {}
+        user_tweets = Tweet.objects.filter(twitter_user=user.id)
+        for t in user_tweets:
+            d[t.tweet_id] = user.id
+
+        return d
