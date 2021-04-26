@@ -11,6 +11,7 @@ except Exception:
 
 class TwitterUser(models.Model):
     screen_name = models.CharField(max_length=15)
+    type_user = models.CharField(max_length=20, null=True)
     # twitter_user_id = models.CharField(max_length=20, null=True)
     # user_info = models.JSONField()
     # followers_count = models.IntegerField(null=True)

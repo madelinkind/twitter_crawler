@@ -24,7 +24,7 @@ from db.models import Tweet, TwitterUser
 
 # # load users list
 
-users_map = map(lambda item: item['screen_name'], TwitterUser.objects.values('screen_name'))
+users_map = map(lambda item: item['screen_name'], TwitterUser.objects.order_by('id').values('screen_name'))
 users_list = list(users_map)
 
 dbs = DBStorage()

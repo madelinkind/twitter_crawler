@@ -125,20 +125,24 @@ class TwitterEngine(object):
         user_tweets_dict = self.build_user_tweets_dict(user)
 
         user_timeline = Cursor(self.TwitterApi.user_timeline, id=username).items()
-        for tweet_info in user_timeline:
-            tweet_date_api_recent = tweet_info.created_at
-            # 
-            if lastest_tweet is not None and self.user_saved_tweets_count(user) > TIMELINE_MAX and self.current_tweet_db_is_older(lastest_tweet, tweet_date_api_recent):
-                break
-            if tweet_info.id in user_tweets_dict:
-                continue
-            
-            # need to add tweet to db
-            print(f"{datetime.now()}: Saving tweet with id={tweet_info.id}")
-            success = self.storage.save_tweet(tweet_info)
+        try:
+            for tweet_info in user_timeline:
+                tweet_date_api_recent = tweet_info.created_at
+                # 
+                if lastest_tweet is not None and self.user_saved_tweets_count(user) > TIMELINE_MAX and self.current_tweet_db_is_older(lastest_tweet.tweet_date, tweet_date_api_recent):
+                    break
+                if tweet_info.id in user_tweets_dict:
+                    continue
+                
+                # need to add tweet to db
+                print(f"{datetime.now()}: Saving tweet with id={tweet_info.id}")
+                success = self.storage.save_tweet(tweet_info)
 
-            if not success:
-                print("The tweet already exists in data base")
+                if not success:
+                    print("The tweet already exists in data base")
+        except Exception as e:
+            print("The user has his tweets blocked, error =>", type(e).__name__)
+        
 
         return True
 
